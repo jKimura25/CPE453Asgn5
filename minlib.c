@@ -2,71 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
-
-#define DIRECT_ZONES 7
-
-typedef struct Options
-{
-    int32_t vflag;
-    int32_t part;
-    int32_t spart;  
-    char* imgfile;
-    char* srcpath;
-    char* destpath;
-} Options;
-
-typedef struct Partition
-{
-    uint8_t bootind;
-    uint8_t start_head;
-    uint8_t start_sec;
-    uint8_t start_cyl;
-    uint8_t type;
-    uint8_t end_head;
-    uint8_t end_sec;
-    uint8_t end_cyl;
-    uint32_t lFirst;
-    uint32_t size;
-} Partition;
-
-typedef struct SuperBlock 
-{ 
-    uint32_t ninodes;
-    uint16_t pad1;
-    int16_t i_blocks;
-    int16_t z_blocks;
-    uint16_t firstdata;
-    int16_t log_zone_size;
-    int16_t pad2;
-    uint32_t max_file;
-    uint32_t zones;
-    int16_t magic;
-    int16_t pad3;
-    uint16_t blocksize;
-    uint8_t subversion;
-} SuperBlock;
-
-typedef struct Inode 
-{
-    uint16_t mode;
-    uint16_t links;
-    uint16_t uid;
-    uint16_t gid;
-    uint32_t size;
-    int32_t atime;
-    int32_t mtime;
-    int32_t ctime;
-    uint32_t zone[DIRECT_ZONES];
-    uint32_t indirect;
-    uint32_t two_indirect;
-    uint32_t unused;
-} Inode;
-
-typedef struct Dirent
-{
-    uint32_t inode;
-    unsigned char name[60];
-} Dirent;
+#include "minlib.h"
 
 void printHelp()
 {
@@ -139,37 +75,64 @@ void debugOptions(Options options)
     printf("destpath: %s\n", options.destpath);
 }
 
+void getSuperBlock(FILE *stream, SuperBlock *superblock, uintptr_t offset)
+{
+    if (-1 == fseek(stream, offset + 1024, SEEK_SET)) /*Navigate to SuperBlock*/
+    {
+        perror("fseek failed!");
+        exit(-1);
+    }
+    
+    if(fread(superblock, sizeof(SuperBlock), 1, stream) != 1) /*Read superblock*/
+    {
+        perror("superblock read failed!");
+        exit(-1);
+    }
+
+    printf("superblock ninodes: %d\n", superblock->ninodes);
+    printf("superblock magic: %d\n", superblock->magic);
+
+    if (superblock->magic != 0x4D5A)
+    {
+        printf("Invalid super block\n");
+        exit(-1);
+    }
+}
+
 uintptr_t getPartition(FILE *stream, uint32_t index, uintptr_t offset)
 {
     Partition parray[4];
     uint8_t magic = 0;
     uint8_t magic2 = 0;
+    uintptr_t newOffset = 0;
     
+    printf("partition offset: %p\n", (void *)offset);
+
     /*Check if partition table is valid*/
 
     if (-1 == fseek(stream, offset + 510, SEEK_SET)) /*Navigate to signature*/
     {
-        perror("fseek failed!");
+        perror("partition seek failed!");
         exit(-1);
     }
 
     if(fread(&magic, sizeof(uint8_t), 1, stream) != 1) /*Read valid bits*/
     {
-        perror("fread failed!");
+        perror("valid read failed!");
         exit(-1);
     }
     if(fread(&magic2, sizeof(uint8_t), 1, stream) != 1) /*Read valid bits*/
     {
-        perror("fread failed!");
+        perror("valid read failed!");
         exit(-1);
     }
 
-    printf("magic 1: %d\n", magic);
-    printf("magic 2: %d\n", magic2);
+    printf("partition magic 1: %d\n", magic);
+    printf("partition magic 2: %d\n", magic2);
 
     if(magic != 0x55 || magic2 != 0xAA)
     {
-        perror("Invalid partition table");
+        printf("Invalid partition table\n");
         exit(-1);
     }
 
@@ -181,42 +144,13 @@ uintptr_t getPartition(FILE *stream, uint32_t index, uintptr_t offset)
         exit(-1);
     }
 
-    if(fread(&parray, sizeof(Partition), index + 1, stream) != 1) /*Read p-table*/
+    if(fread(&parray, sizeof(Partition), 4, stream) != 1) /*Read table*/
     {
-        perror("fread failed!");
+        perror("partition read failed!");
         exit(-1);
     }
 
-    return parray[index].lFirst;
-}
+    newOffset = parray[index].lFirst * 512;
 
-int main(int argc, char* argv[])
-{
-    Options options;
-    FILE* image;
-    uintptr_t offset = 0;
-
-    parseOpts(argc, argv, &options);
-
-    debugOptions(options);
-
-    if((image = fopen(options.imgfile, "r")) == NULL) /*Read p-table*/
-    {
-        perror("fopen failed!");
-        exit(-1);
-    }
-
-    if (options.part != -1)
-    {
-        offset = getPartition(image, options.part, offset);
-    }
-
-    if (options.spart != -1)
-    {
-        offset = getPartition(image, options.spart, offset);
-    }
-
-    printf("%p\n", (void *)offset);
-
-    return 0;
+    return newOffset ;
 }
