@@ -16,6 +16,42 @@ void printHelp()
     printf("-v verbose --- increase verbosity level\n");
 }
 
+void printSuperblock(SuperBlock sb)
+{
+    printf("\nSuperblock Contents:\n");
+    printf("  %-10s %10d\n", "ninodes", sb.ninodes);
+    printf("  %-10s %10d\n", "i_blocks", sb.i_blocks);
+    printf("  %-10s %10d\n", "z_blocks", sb.z_blocks);
+    printf("  %-10s %10d\n", "firstdata", sb.firstdata);
+    printf("  %-13s %7d", "log_zone_size", sb.log_zone_size);
+    printf(" (zone size: %d)\n", sb.blocksize << sb.log_zone_size);
+    printf("  %-10s %10u\n", "max_file", sb.max_file);
+    printf("  %-10s %#10x\n", "magic", sb.magic);
+    printf("  %-10s %10d\n", "zones", sb.zones);
+    printf("  %-10s %10d\n", "blocksize", sb.blocksize);
+    printf("  %-10s %10d\n", "subversion", sb.subversion);
+}
+
+void printPartTable(Partition ptable[])
+{
+    int i;
+    printf("       ----Start----      ------End-----\n");
+    printf("  Boot head  sec  cyl Type head  sec  cyl      First       Size\n");
+    for(i = 0; i < 4; i++)
+    {
+        printf("  %#4x", ptable[i].bootind);
+        printf(" %4d", ptable[i].start_head);
+        printf(" %4d", ptable[i].start_sec);
+        printf(" %4d", ptable[i].start_cyl);
+        printf(" %#4x", ptable[i].type);
+        printf(" %4d", ptable[i].end_head);
+        printf(" %4d", ptable[i].end_sec);
+        printf(" %4d", ptable[i].end_cyl);
+        printf(" %10d", ptable[i].lFirst);
+        printf(" %10d\n", ptable[i].size);
+    }
+}
+
 void parseOpts(int argc, char* argv[], Options *options)
 {
     int c;
@@ -53,7 +89,7 @@ void parseOpts(int argc, char* argv[], Options *options)
                 printf("Unknown command: %c\n", optopt);
         }
     }
-   
+
     options->imgfile = argv[optind++];
     if (argv[optind] != NULL)
     {
@@ -89,7 +125,6 @@ void getSuperBlock(FILE *stream, SuperBlock *superblock, uintptr_t offset)
         exit(-1);
     }
 
-    printf("superblock ninodes: %d\n", superblock->ninodes);
     printf("superblock magic: %d\n", superblock->magic);
 
     if (superblock->magic != 0x4D5A)
@@ -99,12 +134,11 @@ void getSuperBlock(FILE *stream, SuperBlock *superblock, uintptr_t offset)
     }
 }
 
-uintptr_t getPartition(FILE *stream, uint32_t index, uintptr_t offset)
+Partition getPartition(FILE *stream, uint32_t index, uintptr_t offset)
 {
     Partition parray[4];
     uint8_t magic = 0;
     uint8_t magic2 = 0;
-    uintptr_t newOffset = 0;
     
     printf("partition offset: %p\n", (void *)offset);
 
@@ -132,7 +166,7 @@ uintptr_t getPartition(FILE *stream, uint32_t index, uintptr_t offset)
 
     if(magic != 0x55 || magic2 != 0xAA)
     {
-        printf("Invalid partition table\n");
+        printf("Invalid partition table!\n");
         exit(-1);
     }
 
@@ -144,13 +178,17 @@ uintptr_t getPartition(FILE *stream, uint32_t index, uintptr_t offset)
         exit(-1);
     }
 
-    if(fread(&parray, sizeof(Partition), 4, stream) != 1) /*Read table*/
+    if(fread(&parray, sizeof(Partition), index + 1, stream) != 1) /*Read table*/
     {
         perror("partition read failed!");
         exit(-1);
     }
 
-    newOffset = parray[index].lFirst * 512;
+    if (parray[index].type != 0x81)
+    {
+        printf("Invalid partition!\n");
+        exit(-1);
+    }
 
-    return newOffset ;
+    return parray[index];
 }

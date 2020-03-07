@@ -14,4 +14,4 @@ minlib: minlib.c
 	$(CC) $(CFLAGS) minlib.c -c -o minlib
 
 clean:
-	rm *.o test* *.log
+	rm *.o test* *.log minls minget

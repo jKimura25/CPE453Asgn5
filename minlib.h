@@ -8,7 +8,7 @@
 
 #define DIRECT_ZONES 7
 
-typedef struct Options
+typedef struct __attribute__ ((__packed__)) Options
 {
     int32_t vflag;
     int32_t part;
@@ -18,7 +18,7 @@ typedef struct Options
     char* destpath;
 } Options;
 
-typedef struct Partition
+typedef struct __attribute__ ((__packed__)) Partition
 {
     uint8_t bootind;
     uint8_t start_head;
@@ -32,7 +32,7 @@ typedef struct Partition
     uint32_t size;
 } Partition;
 
-typedef struct SuperBlock 
+typedef struct __attribute__ ((__packed__)) SuperBlock 
 { 
     uint32_t ninodes;
     uint16_t pad1;
@@ -49,7 +49,7 @@ typedef struct SuperBlock
     uint8_t subversion;
 } SuperBlock;
 
-typedef struct Inode 
+typedef struct __attribute__ ((__packed__)) Inode 
 {
     uint16_t mode;
     uint16_t links;
@@ -65,7 +65,7 @@ typedef struct Inode
     uint32_t unused;
 } Inode;
 
-typedef struct Dirent
+typedef struct __attribute__ ((__packed__)) Dirent
 {
     uint32_t inode;
     unsigned char name[60];
@@ -75,6 +75,8 @@ void printHelp();
 void parseOpts(int argc, char* argv[], Options *options);
 void debugOptions(Options options);
 void getSuperBlock(FILE *stream, SuperBlock *superblock, uintptr_t offset);
-uintptr_t getPartition(FILE *stream, uint32_t index, uintptr_t offset);
+Partition getPartition(FILE *stream, uint32_t index, uintptr_t offset);
+void printPartTable(Partition ptable[]);
+void printSuperblock(SuperBlock sb);
 
 #endif
