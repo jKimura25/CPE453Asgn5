@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <string.h>
+#include <fcntl.h>
 #include "minlib.h"
 
 #define DIR_MASK 0040000 /* Confirms an inode mode is directory */
@@ -20,14 +21,14 @@
 
 void printHelp()
 {
-    printf("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n");
-    printf("Options:\n");
-    printf("-p part    --- select partition for ");
-    printf("filesystem (default: none)\n");
-    printf("-s sub     --- select subpartition for ");
-    printf("filesystem (default: none)\n");
-    printf("-h help    --- print usage information and exit\n");
-    printf("-v verbose --- increase verbosity level\n");
+    perror("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n");
+    perror("Options:\n");
+    perror("-p part    --- select partition for ");
+    perror("filesystem (default: none)\n");
+    perror("-s sub     --- select subpartition for ");
+    perror("filesystem (default: none)\n");
+    perror("-h help    --- print usage information and exit\n");
+    perror("-v verbose --- increase verbosity level\n");
 }
 
 void parseOpts(int argc, char* argv[], Options *options)
@@ -53,7 +54,7 @@ void parseOpts(int argc, char* argv[], Options *options)
         {
             case 'h':
                 printHelp();
-                exit(0);
+                exit(-1);
             case 'v':
                 options->vflag = 1;
                 break;
@@ -79,7 +80,8 @@ void parseOpts(int argc, char* argv[], Options *options)
     }
 }
 
-void getPartitionTable(FILE *image, uintptr_t offset, uint32_t vflag, Partition* partitiontable)
+void getPartitionTable(FILE *image, uintptr_t offset, uint32_t vflag, 
+    Partition* partitiontable)
 {   
     uint8_t magic[2];
 
@@ -179,13 +181,15 @@ void printSuperblock(SuperBlock sb)
     printf("  %-10s %10d\n", "subversion", sb.subversion);
 }
 
+int count = 0;
+
 Dirent getDirent
    (FILE* image, Inode inode, SuperBlock sb, uintptr_t offs, uint32_t index)
 {
    uint32_t zoneSize = sb.blocksize << sb.log_zone_size;
-   uint32_t totalEntries = inode.size / sizeof(Dirent);
+   uint32_t direntsInZone = zoneSize / sizeof(Dirent);
    uint32_t ptrsInZone = zoneSize / sizeof(uint32_t);
-   uint32_t zoneNumber = index/totalEntries;
+   uint32_t zoneNumber = index / direntsInZone;
    Dirent dummy;
    Dirent* zone;
    
@@ -194,12 +198,15 @@ Dirent getDirent
       perror("malloc zone failed!");
       exit(-1);
    }
+
    if(1 == getZone(image, ptrsInZone, inode, zoneNumber, zone, sb, offs))
    {
       dummy.inode = 0;
       return dummy;
    }
-   dummy = zone[index%totalEntries];
+
+   dummy = zone[index%direntsInZone];
+
    free(zone);
    return dummy;
 }
@@ -260,9 +267,12 @@ void printInode(Inode inode)
     printf("  %-20s %13d\n", "unsigned short uid", inode.uid);
     printf("  %-20s %13d\n", "unsigned short gid", inode.gid);
     printf("  %-15s %13d\n", "uint32_t  size", inode.size);
-    printf("  %-15s %13d --- %s", "uint32_t  atime", inode.atime, ctime(&atimes));
-    printf("  %-15s %13d --- %s", "uint32_t  mtime", inode.mtime, ctime(&mtimes));
-    printf("  %-15s %13d --- %s", "uint32_t  ctime", inode.ctime, ctime(&ctimes));
+    printf("  %-15s %13d --- %s", "uint32_t  atime", inode.atime, 
+        ctime(&atimes));
+    printf("  %-15s %13d --- %s", "uint32_t  mtime", inode.mtime, 
+        ctime(&mtimes));
+    printf("  %-15s %13d --- %s", "uint32_t  ctime", inode.ctime, 
+        ctime(&ctimes));
 
     printf("\n  Direct zones:\n");
     for (i = 0; i < DIRECT_ZONES; i++)
@@ -273,7 +283,8 @@ void printInode(Inode inode)
     printf("   uint32_t  double     =%11d\n", inode.two_indirect);
 }
 
-uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index, Dirent* Zone, SuperBlock superblock, uintptr_t offset)
+uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, 
+    uint32_t index, Dirent* Zone, SuperBlock superblock, uintptr_t offset)
 {
     uint32_t blockIndex = 0;
     uintptr_t addr;
@@ -334,7 +345,8 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index
         free(tempZone1);
     }
     /* If zone is in Two_Indirect */
-    else if (index < DIRECT_ZONES + indirectSize + (indirectSize * indirectSize))
+    else if (index < DIRECT_ZONES + indirectSize + 
+        (indirectSize * indirectSize))
     {
         /* Remove Direct and Indirect Zone */
         index -= DIRECT_ZONES + indirectSize;
@@ -463,7 +475,7 @@ uint32_t checkZone(char* token, Dirent* Zone, uint32_t numEntries)
 /* Returns true if inode points to directory, false if not */
 int checkDir(Inode inode)
 {
-    if(inode.mode && DIR_MASK == DIR_MASK)
+    if(inode.mode & DIR_MASK)
     {
         return 1;
     }
@@ -505,7 +517,8 @@ void lsfile(Inode inode, char* path)
     printf("    %d %s\n", inode.size, path);
 }
 
-void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po, uintptr_t io)
+void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, 
+    uintptr_t po, uintptr_t io)
 {
     int i;
     char direntName[61];
@@ -513,9 +526,11 @@ void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po, ui
     Dirent dirent;
     Inode tempin;
     printf("%s:\n", path);
+
     for(i = 0; i < totalEntries; i++)
     {
         dirent = getDirent(image, inode, sb, po, i);
+        
         if(dirent.inode != 0)
         {
             getInode(image, io, dirent.inode, &tempin);
@@ -527,7 +542,8 @@ void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po, ui
     }
 }
 
-void minls(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po, uintptr_t io)
+void minls(Inode inode, char* path, FILE* image, SuperBlock sb, 
+    uintptr_t po, uintptr_t io)
 {
     /* If inode points to file */
     if(inode.mode & FIL_MASK)
@@ -537,5 +553,68 @@ void minls(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po, ui
     if(inode.mode & DIR_MASK)
     {
         lsdir(inode, path, image, sb, po, io);
+    }
+}
+
+void minget(Inode inode, FILE* image, SuperBlock sb, 
+    uintptr_t po, Options ops)
+{
+    int i;
+    int fd;
+    uint32_t zoneSize = sb.blocksize << sb.log_zone_size;
+    uint32_t numZones = inode.size / zoneSize + (inode.size % zoneSize != 0);
+    uint32_t bytesLeft = inode.size;
+    uint32_t ptrsInZone = zoneSize / sizeof(uint32_t);
+    uint8_t* zone;
+    uint32_t bytesToWrite = 0;
+
+    /* Open output file for writing */
+    if(ops.destpath != NULL)
+    {
+        fd = open(ops.destpath, O_CREAT|O_WRONLY|O_TRUNC);
+    }
+    else
+    {
+        fd = 1;
+    }
+    if(inode.mode & FIL_MASK)
+    {
+        if ((zone = malloc(zoneSize)) == NULL)
+        {
+          perror("malloc zone failed!");
+          exit(-1);
+        }
+        
+        for(i = 0; i < numZones; i++)
+        {
+            if(bytesLeft > zoneSize)
+            {
+                bytesToWrite = zoneSize;
+            }
+            else
+            {
+                bytesToWrite = bytesLeft;
+            }
+
+            /* Hole zone, write a zone of 0's*/
+            if(1 == getZone(image, ptrsInZone, inode, i, 
+                (Dirent *)zone, sb, po))
+            {
+                write(fd, '\0', bytesToWrite);
+            }
+            else
+            {
+                write(fd, zone, bytesToWrite);
+            }
+            bytesLeft -= bytesToWrite;
+        }
+
+        free(zone);
+        close(fd);
+    }
+    else
+    {
+        printf("This is not a File!\n");
+        exit(-1);
     }
 }

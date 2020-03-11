@@ -38,7 +38,8 @@ int main(int argc, char* argv[])
     /* If partition passed in */ 
     if (options.part != -1)
     {
-        getPartitionTable(image, partitionOffset, options.vflag, partitiontable);
+        getPartitionTable(image, partitionOffset, options.vflag, 
+        	partitiontable);
 
         /* Partition Table verbose */
 		if(options.vflag)
@@ -63,7 +64,8 @@ int main(int argc, char* argv[])
         /* If subpartition passed in */
         if (options.spart != -1)
         {
-            getPartitionTable(image, partitionOffset, options.vflag, spartitiontable);
+            getPartitionTable(image, partitionOffset, options.vflag, 
+            	spartitiontable);
 
             /* Subpartition Table verbose */
 			if(options.vflag)
@@ -107,7 +109,8 @@ int main(int argc, char* argv[])
     }
 
     /* Calculate inode table offset */
-    inodeTableOffset = partitionOffset + superblock.blocksize * (2 + superblock.i_blocks + superblock.z_blocks);
+    inodeTableOffset = partitionOffset + superblock.blocksize * 
+    	(2 + superblock.i_blocks + superblock.z_blocks);
 
     /* Init srcpath copy */
     memset(copySrcpath, '\0', 4096);
@@ -169,7 +172,8 @@ int main(int argc, char* argv[])
     }
 
     /* Do minls */
-    minls(inode, options.srcpath, image, superblock, partitionOffset, inodeTableOffset);
+    minls(inode, options.srcpath, image, superblock, partitionOffset, 
+    	inodeTableOffset);
 
     /* Close image */
     if((fclose(image)) == -1)

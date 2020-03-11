@@ -1,0 +1,519 @@
+
+------------------------
+Looking for source files
+------------------------
+
+Found: minget.c minlib.c minlib.h minls.c
+
+--------------------------------
+Checking for long lines (no program should have any lines > 80 chars)
+(run ~pnico/bin/longlines.pl on your files to check.)
+--------------------------------
+
+Line length ok.
+
+Found: Makefile
+
+------------------------------------
+Building the application: "make all"
+------------------------------------
+
+make all
+make: Nothing to be done for `all'.
+
+---------------
+checking for executables
+---------------
+
+----------------------
+Testing verbose behavior
+----------------------
+minls -v Images/TestImage
+./minls -v /home/pn-cs453/Given/Asgn5/Images/TestImage
+
+Superblock Contents:
+  ninodes           768
+  i_blocks            1
+  z_blocks            1
+  firstdata          16
+  log_zone_size       0 (zone size: 4096)
+  max_file   4294967295
+  magic          0x4d5a
+  zones             360
+  blocksize        4096
+  subversion          0
+
+File inode:
+  unsigned short mode         0x41ff    (drwxrwxrwx)
+  unsigned short links             3
+  unsigned short uid               2
+  unsigned short gid               2
+  uint32_t  size            384
+  uint32_t  atime    1141098157 --- Mon Feb 27 19:42:37 2006
+  uint32_t  mtime    1141098157 --- Mon Feb 27 19:42:37 2006
+  uint32_t  ctime    1141098157 --- Mon Feb 27 19:42:37 2006
+
+  Direct zones:
+              zone[0]   =         16
+              zone[1]   =          0
+              zone[2]   =          0
+              zone[3]   =          0
+              zone[4]   =          0
+              zone[5]   =          0
+              zone[6]   =          0
+   uint32_t  indirect   =          0
+   uint32_t  double     =          0
+/:
+drwxrwxrwx   384 .
+drwxrwxrwx   384 ..
+-rw-r--r--   73991 Other
+drwxr-xr-x   3200 src
+-rw-r--r--   11 Hello
+
+minls -v -p 0 Images/HardDisk
+./minls -v -p 0 /home/pn-cs453/Given/Asgn5/Images/HardDisk
+
+Partition table:
+       ----Start----      ------End-----
+  Boot head  sec  cyl Type head  sec  cyl      First       Size
+  0x80    1    1    0 0x81    5  209  171         17      95863
+     0    0    0    0    0    0    0    0          0          0
+     0    0    0    0    0    0    0    0          0          0
+     0    0    0    0    0    0    0    0          0          0
+Invalid super block
+
+minls -v -p 0 -s 0 Images/HardDisk
+
+Partition table:
+       ----Start----      ------End-----
+  Boot head  sec  cyl Type head  sec  cyl      First       Size
+  0x80    1    1    0 0x81    5  209  171         17      95863
+     0    0    0    0    0    0    0    0          0          0
+     0    0    0    0    0    0    0    0          0          0
+     0    0    0    0    0    0    0    0          0          0
+
+Subpartition table:
+       ----Start----      ------End-----
+  Boot head  sec  cyl Type head  sec  cyl      First       Size
+  0x80    1    2    0 0x81    2    8   28         18       2880
+     0    0    0    0    0    0    0    0          0          0
+     0    2    9   28 0x81    5  209  171       2898      92982
+     0    0    0    0    0    0    0    0          0          0
+
+Superblock Contents:
+  ninodes           768
+  i_blocks            1
+  z_blocks            1
+  firstdata          16
+  log_zone_size       0 (zone size: 4096)
+  max_file   4294967295
+  magic          0x4d5a
+  zones             360
+  blocksize        4096
+  subversion          0
+
+File inode:
+  unsigned short mode         0x41ff    (drwxrwxrwx)
+  unsigned short links            10
+  unsigned short uid               2
+  unsigned short gid               2
+  uint32_t  size            640
+  uint32_t  atime    1141096963 --- Mon Feb 27 19:22:43 2006
+  uint32_t  mtime    1141096883 --- Mon Feb 27 19:21:23 2006
+  uint32_t  ctime    1141096883 --- Mon Feb 27 19:21:23 2006
+
+  Direct zones:
+              zone[0]   =         16
+              zone[1]   =          0
+              zone[2]   =          0
+              zone[3]   =          0
+              zone[4]   =          0
+              zone[5]   =          0
+              zone[6]   =          0
+   uint32_t  indirect   =          0
+   uint32_t  double     =          0
+/:
+drwxrwxrwx   640 .
+drwxrwxrwx   640 ..
+drwxr-xr-x   128 usr
+drwxr-xr-x   128 tmp
+drwxr-xr-x   2624 bin
+drwxr-xr-x   1472 etc
+drwxr-xr-x   768 sbin
+drwxr-xr-x   14144 dev
+drwxr-xr-x   192 lib
+drwxr-xr-x   256 boot
+
+
+------------------------
+Running the application 
+------------------------
+
+   =======================================================================
+  Test                                                          Status
+       Cmd: Prog Arguments                                
+   =======================================================================
+  1 -- Usage test                                                       ok.
+       Cmd: minls -h                                       
+  2 -- unparitioned, blank                                              ok.
+       Cmd: minls BlankDisk                                
+  3 -- unpartitioned, files                                             ok.
+       Cmd: minls TestImage                                
+  4 -- unpartitioned, bad superblock                                    ok.
+       Cmd: minls RandomDisk                               
+  5 -- partitioned, part 0                                              ok.
+       Cmd: minls -p 0 Partitioned                         
+  6 -- partitioned, part 1                                              ok.
+       Cmd: minls -p 1 Partitioned                         
+  7 -- partitioned, part 2                                              ok.
+       Cmd: minls -p 2 Partitioned                         
+  8 -- partitioned, part 3                                              ok.
+       Cmd: minls -p 3 Partitioned                         
+  9 -- partitioned, bad part                                            ok.
+       Cmd: minls -p 5 Partitioned                         
+ 10 -- partitioned, no part                                             ok.
+       Cmd: minls Partitioned                              
+ 11 -- partitioned, not minix                                           ok.
+       Cmd: minls -p 1 HardDisk                            
+ 12 -- subpart., good sub                                               ok.
+       Cmd: minls -p 0 -s 0 HardDisk                       
+ 13 -- subpart., bad sub                                                ok.
+       Cmd: minls -p 0 -s 1 HardDisk                       
+ 14 -- unpartitioned, w/filename                                        ok.
+       Cmd: minls TestImage /Hello                         
+ 15 -- partitioned, w/filename, p0                                      ok.
+       Cmd: minls -p 0 Partitioned /Message                
+ 16 -- partitioned, w/filename, p1                                      ok.
+       Cmd: minls -p 1 Partitioned /Message                
+ 17 -- partitioned, w/filename, p2                                      ok.
+       Cmd: minls -p 2 Partitioned /Message                
+ 18 -- partitioned, w/filename, p3                                      ok.
+       Cmd: minls -p 3 Partitioned /Message                
+ 19 -- subpart., no filename s0                                         ok.
+       Cmd: minls -p 0 -s 0 HardDisk                       
+ 20 -- subpart., no filename s2                                         ok.
+       Cmd: minls -p 0 -s 2 HardDisk                       
+ 21 -- subpart., w/filename                                             ok.
+       Cmd: minls -p 0 -s 2 HardDisk /home/pnico/Message   
+ 22 -- subpart., w/bad filename                                         ok.
+       Cmd: minls -p 0 -s 0 HardDisk /home/pnico/Message   
+ 23 -- directories                                                      ok.
+       Cmd: minls Files /Files                             
+ 24 -- directories                                                      ok.
+       Cmd: minls Files /Files/0000_Zones                  
+ 25 -- directories                                                      ok.
+       Cmd: minls Files /Files/0000_Zone                   
+ 26 -- directories                                                      ok.
+       Cmd: minls Files /Files/0007_Zones                  
+ 27 -- directories                                                      ok.
+       Cmd: minls Files /Files/0010_Zones                  
+ 28 -- directories                                                      ok.
+       Cmd: minls Files /Files/1032_Zones                  
+ 29 -- directories                                                      ok.
+       Cmd: minls Files /DeepPaths/a/b/c/d/e/i/j/k/Files   
+ 30 -- directories                                                      ok.
+       Cmd: minls Files /DeepPaths/a/b/c/d/e/i/j/k/Files/Message 
+ 31 -- multi-zone directory                                             ok.
+       Cmd: minls BigDirectories                           
+ 32 -- multi-zone directory (file)                                      ok.
+       Cmd: minls BigDirectories LastFile                  
+ 33 -- indirect directory                                               ok.
+       Cmd: minls BigIndirectDirs Level1/Level2            
+ 34 -- indirect directory (file)                                        ok.
+       Cmd: minls BigIndirectDirs Level1/Level2/LastFile   
+ 35 -- directories-deleted                                              ok.
+       Cmd: minls Files /Deleted                           
+ 36 -- directories-ok file                                              ok.
+       Cmd: minls Files /Deleted/File-10                   
+ 37 -- directories-deleted file                                         ok.
+       Cmd: minls Files /Deleted/File-05                   
+ 38 -- 1k blocks. dir.                                                  ok.
+       Cmd: minls SmallBlocks--1k                          
+ 39 -- 1k blocks. file.                                                 ok.
+       Cmd: minls SmallBlocks--1k DirTwo/FileTwo           
+ 40 -- 16k zones. dir.                                                  ok.
+       Cmd: minls BigZones-16k                             
+ 41 -- 16k zones. file.                                                 ok.
+       Cmd: minls BigZones-16k /DirOne/FileTwo             
+ 42 -- 64k zones. dir                                                   ok.
+       Cmd: minls ReallyBigZones-64k                       
+ 43 -- 64k zones. file                                                  ok.
+       Cmd: minls ReallyBigZones-64k DirTwo/FileOne        
+ 44 -- 64k zones. longpath                                              ok.
+       Cmd: minls ReallyBigZones-64k /./.././../DirTwo/FileOne 
+ 45 -- Permissions 777                                                  ok.
+       Cmd: minls Files /Permissions/777                   
+ 46 -- Permissions 755                                                  ok.
+       Cmd: minls Files /Permissions/755                   
+ 47 -- Permissions 753                                                  ok.
+       Cmd: minls Files /Permissions/753                   
+ 48 -- Permissions 357                                                  ok.
+       Cmd: minls Files /Permissions/357                   
+ 49 -- Permissions 000                                                  ok.
+       Cmd: minls Files /Permissions/000                   
+ 50 -- unpartitioned, w/filename                                        ok.
+       Cmd: minget TestImage /Hello                         
+ 51 -- partitioned, w/filename, p0                                      ok.
+       Cmd: minget -p 0 Partitioned /Message                
+ 52 -- partitioned, w/filename, p1                                      ok.
+       Cmd: minget -p 1 Partitioned /Message                
+ 53 -- partitioned, w/filename, p2                                      ok.
+       Cmd: minget -p 2 Partitioned /Message                
+ 54 -- partitioned, w/filename, p3                                      ok.
+       Cmd: minget -p 3 Partitioned /Message                
+ 55 -- subpart., no filename s0                                         ok.
+       Cmd: minget -p 0 -s 0 HardDisk                       
+ 56 -- subpart., no filename s2                                         ok.
+       Cmd: minget -p 0 -s 2 HardDisk                       
+ 57 -- subpart., w/filename                                             ok.
+       Cmd: minget -p 0 -s 2 HardDisk /home/pnico/Message   
+ 58 -- subpart., w/bad filename                                         ok.
+       Cmd: minget -p 0 -s 0 HardDisk /home/pnico/Message   
+ 59 -- unpartitioned, w/filename                                        ok.
+       Cmd: minget TestImage /Hello /dev/stdout             
+ 60 -- partitioned, w/filename, p0                                      ok.
+       Cmd: minget -p 0 Partitioned /Message /dev/stdout    
+ 61 -- partitioned, w/filename, p1                                      ok.
+       Cmd: minget -p 1 Partitioned /Message /dev/stdout    
+ 62 -- partitioned, w/filename, p2                                      ok.
+       Cmd: minget -p 2 Partitioned /Message /dev/stdout    
+ 63 -- partitioned, w/filename, p3                                      ok.
+       Cmd: minget -p 3 Partitioned /Message /dev/stdout    
+ 64 -- subpart., no filename s0                                         ok.
+       Cmd: minget -p 0 -s 0 HardDisk /dev/stdout           
+ 65 -- subpart., no filename s2                                         ok.
+       Cmd: minget -p 0 -s 2 HardDisk /dev/stdout           
+ 66 -- subpart., w/filename                                             ok.
+       Cmd: minget -p 0 -s 2 HardDisk /home/pnico/Message /dev/stdout 
+ 67 -- subpart., w/bad filename                                         ok.
+       Cmd: minget -p 0 -s 0 HardDisk /home/pnico/Message /dev/stdout 
+ 68 -- directories                                                      ok.
+       Cmd: minget Files /Files                             
+ 69 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/Distraction             
+ 70 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files   
+ 71 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files/Message 
+ 72 -- directories                                                      ok.
+       Cmd: minget Files /Files /dev/stdout                 
+ 73 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/Distraction /dev/stdout 
+ 74 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files /dev/stdout 
+ 75 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files/Message /dev/stdout 
+ 76 -- multi-zone directory (file)                                      ok.
+       Cmd: minget BigDirectories LastFile                  
+ 77 -- multi-zone directory (file)                                      ok.
+       Cmd: minget BigDirectories LastFile /dev/stdout      
+ 78 -- indirect directory (file)                                        ok.
+       Cmd: minget BigIndirectDirs Level1/Level2/LastFile   
+ 79 -- indirect directory (file)                                        ok.
+       Cmd: minget BigIndirectDirs Level1/Level2/LastFile /dev/stdout 
+ 80 -- directories-deleted                                              ok.
+       Cmd: minget Files /Deleted                           
+ 81 -- directories-ok file                                              ok.
+       Cmd: minget Files /Deleted/File-10                   
+ 82 -- directories-deleted file                                         ok.
+       Cmd: minget Files /Deleted/File-05                   
+ 83 -- directories-deleted                                              ok.
+       Cmd: minget Files /Deleted /dev/stdout               
+ 84 -- directories-ok file                                              ok.
+       Cmd: minget Files /Deleted/File-10 /dev/stdout       
+ 85 -- directories-deleted file                                         ok.
+       Cmd: minget Files /Deleted/File-05 /dev/stdout       
+ 86 -- 1k blocks. dir.                                                  ok.
+       Cmd: minls SmallBlocks--1k                          
+ 87 -- 1k blocks. file.                                                 ok.
+       Cmd: minls SmallBlocks--1k DirTwo/FileTwo           
+ 88 -- 16k zones. dir.                                                  ok.
+       Cmd: minls BigZones-16k                             
+ 89 -- 16k zones. file.                                                 ok.
+       Cmd: minls BigZones-16k /DirOne/FileTwo             
+ 90 -- 64k zones. dir                                                   ok.
+       Cmd: minls ReallyBigZones-64k                       
+ 91 -- 64k zones. file                                                  ok.
+       Cmd: minls ReallyBigZones-64k DirTwo/FileOne        
+ 92 -- 64k zones. longpath                                              ok.
+       Cmd: minls ReallyBigZones-64k /./.././../DirTwo/FileOne 
+ 93 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0000_Zones                  
+ 94 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0000_Zone                   
+ 95 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0007_Zones                  
+ 96 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0010_Zones                  
+ 97 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/1032_Zones                  
+ 98 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0000_Zones /dev/stdout      
+ 99 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0000_Zone /dev/stdout       
+100 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0007_Zones /dev/stdout      
+101 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/0010_Zones /dev/stdout      
+102 -- Files size tests                                                 ok.
+       Cmd: minget Files /Files/1032_Zones /dev/stdout      
+103 -- Reading files with holes                                         ok.
+       Cmd: minget Files /Holes/nohole         /dev/stdout  
+104 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/direct         /dev/stdout  
+105 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/into-indirect  /dev/stdout  
+106 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/whole-indirect /dev/stdout  
+107 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/double         /dev/stdout  
+108 -- Reading files with holes                                         ok.
+       Cmd: minget Files /Holes/nohole                      
+109 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/direct                      
+110 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/into-indirect               
+111 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/whole-indirect              
+112 -- Reading files with holes                                     FAILED.
+       Cmd: minget Files /Holes/double                      
+113 -- minls:  partition table with bad type                            ok.
+       Cmd: minls -p 0 BrokenStuff                         
+114 -- minget: partition table with bad type                            ok.
+       Cmd: minget -p 0 BrokenStuff README /dev/stdout      
+115 -- minls:  superblock with bad magic                                ok.
+       Cmd: minls -p 1 BrokenStuff                         
+116 -- minget: superblock with bad magic                                ok.
+       Cmd: minget -p 1 BrokenStuff README /dev/stdout      
+117 -- minls:  partition table with bad magic                           ok.
+       Cmd: minls -p 2 -s 0 BrokenStuff                    
+118 -- minget: partition table with bad magic                           ok.
+       Cmd: minget -p 2 -s 0 BrokenStuff README /dev/stdout 
+119 -- minls:  trying to traverse a file                                ok.
+       Cmd: minls WeirdStuff NotADir/This_file_does_not_exist 
+120 -- minget: trying to traverse a file                                ok.
+       Cmd: minget WeirdStuff NotADir/This_file_does_not_exist /dev/stdout 
+121 -- minget: trying to get a symlink                              FAILED.
+       Cmd: minget WeirdStuff SymLink                       
+122 -- minget: trying to get a directory                                ok.
+       Cmd: minget TestImage src /dev/stdout                
+   =======================================================================
+Failure. (113/122 passed)
+
+Actual ouput from tests and detailed results are below.
+
+
+
+-----------------
+104) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/direct         /dev/stdout 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/104 and testminfs.12496 differ
+
+
+-----------------
+105) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/into-indirect  /dev/stdout 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/105 and testminfs.12496 differ
+
+
+-----------------
+106) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/whole-indirect /dev/stdout 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/106 and testminfs.12496 differ
+
+
+-----------------
+107) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/double         /dev/stdout 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/107 and testminfs.12496 differ
+
+
+-----------------
+109) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/direct 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/109 and testminfs.12496 differ
+
+
+-----------------
+110) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/into-indirect 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/110 and testminfs.12496 differ
+
+
+-----------------
+111) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/whole-indirect 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/111 and testminfs.12496 differ
+
+
+-----------------
+112) Reading files with holes:
+     minget /home/pn-cs453/Given/Asgn5/Images/Files /Holes/double 
+-----------------
+Test program output:
+ --- Output limited to 10 lines. (There would be too much.) ---
+Before the hole.^M
+^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^/home/pnico/bin/iolimit.Linux.x86_64: output character limit (2048) exceeded.
+Diffs: ( < Reference > Testfile ):
+ --- Output limited to 10 lines. (There would be too much.) ---
+Binary files /home/pn-cs453/Given/Asgn5/Expected/112 and testminfs.12496 differ
+
+
+-----------------
+121) minget: trying to get a symlink:
+     minget /home/pn-cs453/Given/Asgn5/Images/WeirdStuff SymLink 
+-----------------
+ This test was expected to fail, but reports success.
+ Perhaps a bad exit status?
+FAILED.
+
+
