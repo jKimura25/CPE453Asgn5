@@ -505,7 +505,7 @@ void lsfile(Inode inode, char* path)
     printf("    %d %s\n", inode.size, path);
 }
 
-void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po)
+void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po, uintptr_t io)
 {
     int i;
     char direntName[61];
@@ -515,28 +515,27 @@ void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po)
     printf("%s:\n", path);
     for(i = 0; i < totalEntries; i++)
     {
-       dirent = getDirent(image, inode, sb, po, i);
-       if(dirent.inode != 0)
-       {
-          getInode(image, po, dirent.inode, &tempin);
-          memset(direntName, '\0', 61);
-          memcpy(direntName, dirent.name, 60);
-          printMask(tempin);
-          printf("   %d %s\n", tempin.size, dirent.name);
-       }
-       
+        dirent = getDirent(image, inode, sb, po, i);
+        if(dirent.inode != 0)
+        {
+            getInode(image, io, dirent.inode, &tempin);
+            memset(direntName, '\0', 61);
+            memcpy(direntName, dirent.name, 60);
+            printMask(tempin);
+            printf("   %d %s\n", tempin.size, direntName);
+        }
     }
 }
 
-void minls(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po)
+void minls(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po, uintptr_t io)
 {
     /* If inode points to file */
     if(inode.mode & FIL_MASK)
     {
         lsfile(inode, path);
     }
-   if(inode.mode & DIR_MASK)
-   {
-      lsdir(inode, path, image, sb, po);
-   }
+    if(inode.mode & DIR_MASK)
+    {
+        lsdir(inode, path, image, sb, po, io);
+    }
 }

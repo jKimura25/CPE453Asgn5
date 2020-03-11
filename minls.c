@@ -133,14 +133,14 @@ int main(int argc, char* argv[])
     {
     	/* Calculating total number of dirents */
     	totalEntries = inode.size / sizeof(Dirent);
-      for (i = 0; i < totalEntries; i++)
-      {
-         dirent = getDirent(image, inode, superblock, partitionOffset, i);
-         if((currentIndex = checkDirent(dirent, token)) != 0)
-         {
-            break;
-         }
-      }
+        for (i = 0; i < totalEntries; i++)
+        {
+            dirent = getDirent(image, inode, superblock, partitionOffset, i);
+            if ((currentIndex = checkDirent(dirent, token)) != 0)
+            {
+                break;
+            }
+        }
 
         if (currentIndex == 0)
         {
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
     }
 
     /* Do minls */
-    minls(inode, options.srcpath, image, superblock, partitionOffset);
+    minls(inode, options.srcpath, image, superblock, partitionOffset, inodeTableOffset);
 
     /* Close image */
     if((fclose(image)) == -1)
