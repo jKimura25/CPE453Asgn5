@@ -6,6 +6,18 @@
 #include <string.h>
 #include "minlib.h"
 
+#define DIR_MASK 0040000 /* Confirms an inode mode is directory */
+#define FIL_MASK 0100000 /* Confirms an inode mode is file */
+#define O_R_MASK 0000400 /* Owner read permission */
+#define O_W_MASK 0000200 /* Owner write permission */
+#define O_X_MASK 0000100 /* Owner exec permission */
+#define G_R_MASK 0000040 /* Group read permission */
+#define G_W_MASK 0000020 /* Group write permission */
+#define G_X_MASK 0000010 /* Group exec permission */
+#define X_R_MASK 0000004 /* Other read permission */
+#define X_W_MASK 0000002 /* Other write permission */
+#define X_X_MASK 0000001 /* Other exec permission */
+
 void printHelp()
 {
     printf("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n");
@@ -173,8 +185,6 @@ void getInode(FILE *image, uintptr_t offset, uint32_t index, Inode *inode)
 
     inodeoffset = offset + (index - 1) * (sizeof(Inode));
 
-    printf("offset: %p\n", offset);
-
     /* Go to inode table */
     if (-1 == fseek(image, inodeoffset, SEEK_SET))
     {
@@ -198,7 +208,10 @@ void printInode(Inode inode)
     time_t ctimes = (time_t)inode.ctime;
 
     printf("\nFile inode:\n");
-    printf("  %-20s %#13x\n", "unsigned short mode", inode.mode);
+    printf("  %-20s %#13x", "unsigned short mode", inode.mode);
+    printf("    (");
+    printMask(inode);
+    printf(")\n");
     printf("  %-20s %13d\n", "unsigned short links", inode.links);
     printf("  %-20s %13d\n", "unsigned short uid", inode.uid);
     printf("  %-20s %13d\n", "unsigned short gid", inode.gid);
@@ -216,7 +229,7 @@ void printInode(Inode inode)
     printf("   uint32_t  double     =%11d\n", inode.two_indirect);
 }
 
-uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index, Dirent* Zone, SuperBlock superblock)
+uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index, Dirent* Zone, SuperBlock superblock, uintptr_t offset)
 {
     uint32_t blockIndex = 0;
     uintptr_t addr;
@@ -259,7 +272,7 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index
         }
 
         /* Go to Indirect table */
-        if (-1 == fseek(image, addr, SEEK_SET))
+        if (-1 == fseek(image, offset + addr, SEEK_SET))
         {
             perror("fseek failed!");
             exit(-1);
@@ -304,7 +317,7 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index
         }
 
         /* Go to Two_Indirect table */
-        if (-1 == fseek(image, two_indirect_addr, SEEK_SET))
+        if (-1 == fseek(image, offset + two_indirect_addr, SEEK_SET))
         {
             perror("fseek failed!");
             exit(-1);
@@ -328,7 +341,7 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index
         indirect_addr = tempZone1[indirIndex] * superblock.blocksize;
 
         /* Go to Indirect table */
-        if (-1 == fseek(image, indirect_addr, SEEK_SET))
+        if (-1 == fseek(image, offset + indirect_addr, SEEK_SET))
         {
             perror("fseek failed!");
             exit(-1);
@@ -358,10 +371,10 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index
         return 1;
     }
 
-    addr = blockIndex * superblock.blocksize;
+    addr = blockIndex * zoneSize;
 
     /* Go to Zone */
-    if (-1 == fseek(image, addr, SEEK_SET))
+    if (-1 == fseek(image, offset + addr, SEEK_SET))
     {
         perror("fseek failed!");
         exit(-1);
@@ -395,13 +408,64 @@ uint32_t checkZone(char* token, Dirent* Zone, uint32_t numEntries)
         memset(direntName, '\0', 61);
         memcpy(direntName, dirent.name, 60);
 
-        printf("token: %s, dirent.name: %s\n", token, dirent.name);
-        printf("dirent inode #: %d\n", dirent.inode);
-
         if (strcmp(direntName, token) == 0)
         {
             return dirent.inode;
         }
     }
     return 0; /* File not found in this zone */
+}
+
+/* Returns true if inode points to directory, false if not */
+int checkDir(Inode inode)
+{
+    if(inode.mode && DIR_MASK == DIR_MASK)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void printMask(Inode inode)
+{
+    char out[11] = "----------";
+    if(inode.mode & DIR_MASK)
+        out[0] = 'd';
+    if(inode.mode & O_R_MASK)
+        out[1] = 'r';
+    if(inode.mode & O_W_MASK)
+        out[2] = 'w';
+    if(inode.mode & O_X_MASK)
+        out[3] = 'x';
+    if(inode.mode & G_R_MASK)
+        out[4] = 'r';
+    if(inode.mode & G_W_MASK)
+        out[5] = 'w';
+    if(inode.mode & G_X_MASK)
+        out[6] = 'x';
+    if(inode.mode & X_R_MASK)
+        out[7] = 'r';
+    if(inode.mode & X_W_MASK)
+        out[8] = 'w';
+    if(inode.mode & X_X_MASK)
+        out[9] = 'x';
+    printf(out);
+}
+
+void lsfile(Inode inode, char* path)
+{
+    printMask(inode);
+    printf("    %d %s\n", inode.size, path);
+}
+
+void minls(Inode inode, char* path)
+{
+    /* If inode points to file */
+    if(inode.mode && FIL_MASK == FIL_MASK)
+    {
+        lsfile(inode, path);
+    }
 }

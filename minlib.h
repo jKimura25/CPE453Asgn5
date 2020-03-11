@@ -79,7 +79,11 @@ void getSuperBlock(FILE *image, uintptr_t offset, SuperBlock *superblock);
 void printSuperblock(SuperBlock sb);
 void getInode(FILE *image, uintptr_t offset, uint32_t index, Inode *inode);
 void printInode(Inode inode);
-uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index, Dirent* Zone, SuperBlock superblock);
+uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index, Dirent* Zone, SuperBlock superblock, uintptr_t offset);
 uint32_t checkZone(char* token, Dirent* Zone, uint32_t numEntries);
+int checkDir(Inode inode);
+void minls(Inode inode, char* path);
+void lsfile(Inode inode, char* path);
+void printMask(Inode inode);
 
 #endif
