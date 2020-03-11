@@ -23,9 +23,7 @@ int main(int argc, char* argv[])
     char copySrcpath[4096];
     char* token = NULL;
     uint32_t totalEntries = 0;
-    uint32_t numZones = 0;
-    uint32_t totalEntriesinZone = 0;
-    uint32_t numZonesIndirect = 0;
+    Dirent dirent;
 
     /* Parse command line args */
     parseOpts(argc, argv, &options);
@@ -108,12 +106,6 @@ int main(int argc, char* argv[])
         exit(-1);
     }
 
-    /* Calculating total number of dirents in a zone */
-    totalEntriesinZone = zoneSize / sizeof(Dirent);
-
-    /* Number of zone numbers in Indirect */
-    numZonesIndirect = zoneSize / sizeof(uint32_t);
-
     /* Calculate inode table offset */
     inodeTableOffset = partitionOffset + superblock.blocksize * (2 + superblock.i_blocks + superblock.z_blocks);
 
@@ -128,6 +120,7 @@ int main(int argc, char* argv[])
     /* A path wasn't given. Default to root */
     else
     {
+      options.srcpath = "/";
     	copySrcpath[0] = '/';
     }
 
@@ -140,36 +133,14 @@ int main(int argc, char* argv[])
     {
     	/* Calculating total number of dirents */
     	totalEntries = inode.size / sizeof(Dirent);
-
-        /* Calculating total number of zones used */
-        numZones = (inode.size / zoneSize) + (inode.size % zoneSize != 0);
-
-        /* Loop over every zone used */
-        for (i = 0; i < numZones; i++)
-        {
-            /* Check if zone is valid (not zero), if non-valid, decrement and move to next zone*/
-            if (1 == getZone(image, numZonesIndirect, inode, i, Zone, superblock, partitionOffset))
-            {
-                totalEntries -= totalEntriesinZone;
-                continue;
-            }
-
-            if (totalEntries < totalEntriesinZone)
-            {
-                if ((currentIndex = checkZone(token, Zone, totalEntries)) != 0)
-                {
-                    break;
-                }
-            }
-            else
-            {
-                if ((currentIndex = checkZone(token, Zone, totalEntriesinZone)) != 0)
-                {
-                    break;
-                }
-                totalEntries -= totalEntriesinZone;
-            }
-        }
+      for (i = 0; i < totalEntries; i++)
+      {
+         dirent = getDirent(image, inode, superblock, partitionOffset, i);
+         if((currentIndex = checkDirent(dirent, token)) != 0)
+         {
+            break;
+         }
+      }
 
         if (currentIndex == 0)
         {
@@ -191,14 +162,14 @@ int main(int argc, char* argv[])
         }
     }
 
-    /* Do minls */
-    minls(inode, options.srcpath);
-
     /* Inode verbose printing */
     if (options.vflag)
     {
         printInode(inode);
     }
+
+    /* Do minls */
+    minls(inode, options.srcpath, image, superblock, partitionOffset);
 
     /* Close image */
     if((fclose(image)) == -1)

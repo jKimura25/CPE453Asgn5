@@ -179,6 +179,50 @@ void printSuperblock(SuperBlock sb)
     printf("  %-10s %10d\n", "subversion", sb.subversion);
 }
 
+Dirent getDirent
+   (FILE* image, Inode inode, SuperBlock sb, uintptr_t offs, uint32_t index)
+{
+   uint32_t zoneSize = sb.blocksize << sb.log_zone_size;
+   uint32_t totalEntries = inode.size / sizeof(Dirent);
+   uint32_t ptrsInZone = zoneSize / sizeof(uint32_t);
+   uint32_t zoneNumber = index/totalEntries;
+   Dirent dummy;
+   Dirent* zone;
+   
+   if ((zone = malloc(zoneSize)) == NULL)
+   {
+      perror("malloc zone failed!");
+      exit(-1);
+   }
+   if(1 == getZone(image, ptrsInZone, inode, zoneNumber, zone, sb, offs))
+   {
+      dummy.inode = 0;
+      return dummy;
+   }
+   dummy = zone[index%totalEntries];
+   free(zone);
+   return dummy;
+}
+
+uint32_t checkDirent(Dirent dirent, char* token)
+{
+   char direntName[61];
+   memset(direntName, '\0', 61);
+   memcpy(direntName, dirent.name, 60);
+   if(dirent.inode == 0)
+   {
+      return 0;
+   }
+   if(strcmp(direntName, token) == 0)
+   {
+      return dirent.inode;
+   }
+   else
+   {
+      return 0;
+   }
+}
+
 void getInode(FILE *image, uintptr_t offset, uint32_t index, Inode *inode)
 {
     uintptr_t inodeoffset;
@@ -461,11 +505,38 @@ void lsfile(Inode inode, char* path)
     printf("    %d %s\n", inode.size, path);
 }
 
-void minls(Inode inode, char* path)
+void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po)
+{
+    int i;
+    char direntName[61];
+    uint32_t totalEntries = inode.size / sizeof(Dirent);
+    Dirent dirent;
+    Inode tempin;
+    printf("%s:\n", path);
+    for(i = 0; i < totalEntries; i++)
+    {
+       dirent = getDirent(image, inode, sb, po, i);
+       if(dirent.inode != 0)
+       {
+          getInode(image, po, dirent.inode, &tempin);
+          memset(direntName, '\0', 61);
+          memcpy(direntName, dirent.name, 60);
+          printMask(tempin);
+          printf("   %d %s\n", tempin.size, dirent.name);
+       }
+       
+    }
+}
+
+void minls(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po)
 {
     /* If inode points to file */
-    if(inode.mode && FIL_MASK == FIL_MASK)
+    if(inode.mode & FIL_MASK)
     {
         lsfile(inode, path);
     }
+   if(inode.mode & DIR_MASK)
+   {
+      lsdir(inode, path, image, sb, po);
+   }
 }

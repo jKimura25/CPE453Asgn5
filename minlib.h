@@ -82,8 +82,11 @@ void printInode(Inode inode);
 uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index, Dirent* Zone, SuperBlock superblock, uintptr_t offset);
 uint32_t checkZone(char* token, Dirent* Zone, uint32_t numEntries);
 int checkDir(Inode inode);
-void minls(Inode inode, char* path);
+void minls(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po);
+void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb, uintptr_t po);
 void lsfile(Inode inode, char* path);
 void printMask(Inode inode);
+uint32_t checkDirent(Dirent dirent, char* token);
+Dirent getDirent(FILE* image, Inode inode, SuperBlock sb, uintptr_t offs, uint32_t index);
 
 #endif
