@@ -1,0 +1,176 @@
+   =======================================================================
+  Test                                                          Status
+       Cmd: Prog Arguments                                
+   =======================================================================
+  1 -- Usage test                                                       ok.
+       Cmd: minls -h                                       
+  2 -- unparitioned, blank                                              ok.
+       Cmd: minls BlankDisk                                
+  3 -- unpartitioned, files                                             ok.
+       Cmd: minls TestImage                                
+  4 -- unpartitioned, bad superblock                                    ok.
+       Cmd: minls RandomDisk                               
+  5 -- partitioned, part 0                                              ok.
+       Cmd: minls -p0 Partitioned                          
+  6 -- partitioned, part 1                                              ok.
+       Cmd: minls -p1 Partitioned                          
+  7 -- partitioned, part 2                                              ok.
+       Cmd: minls -p2 Partitioned                          
+  8 -- partitioned, part 3                                              ok.
+       Cmd: minls -p3 Partitioned                          
+  9 -- partitioned, bad part                                            ok.
+       Cmd: minls -p5 Partitioned                          
+ 10 -- partitioned, no part                                             ok.
+       Cmd: minls Partitioned                              
+ 11 -- partitioned, not minix                                           ok.
+       Cmd: minls -p1 HardDisk                             
+ 12 -- subpart., good sub                                               ok.
+       Cmd: minls -p0 -s0 HardDisk                         
+ 13 -- subpart., bad sub                                                ok.
+       Cmd: minls -p0 -s1 HardDisk                         
+ 14 -- unpartitioned, w/filename                                        ok.
+       Cmd: minls TestImage /Hello                         
+ 15 -- partitioned, w/filename, p0                                      ok.
+       Cmd: minls -p0 Partitioned /Message                 
+ 16 -- partitioned, w/filename, p1                                      ok.
+       Cmd: minls -p1 Partitioned /Message                 
+ 17 -- partitioned, w/filename, p2                                      ok.
+       Cmd: minls -p2 Partitioned /Message                 
+ 18 -- partitioned, w/filename, p3                                      ok.
+       Cmd: minls -p3 Partitioned /Message                 
+ 19 -- subpart., no filename s0                                         ok.
+       Cmd: minls -p0 -s0 HardDisk                         
+ 20 -- subpart., no filename s2                                         ok.
+       Cmd: minls -p0 -s2 HardDisk                         
+ 21 -- subpart., w/filename                                             ok.
+       Cmd: minls -p0 -s2 HardDisk /home/pnico/Message     
+ 22 -- subpart., w/bad filename                                         ok.
+       Cmd: minls -p0 -s0 HardDisk /home/pnico/Message     
+ 23 -- directories                                                      ok.
+       Cmd: minls Files /Files                             
+ 24 -- directories                                                      ok.
+       Cmd: minls Files /Files/0000_Zones                  
+ 25 -- directories                                                      ok.
+       Cmd: minls Files /Files/0000_Zone                   
+ 26 -- directories                                                      ok.
+       Cmd: minls Files /Files/0007_Zones                  
+ 27 -- directories                                                      ok.
+       Cmd: minls Files /Files/0010_Zones                  
+ 28 -- directories                                                      ok.
+       Cmd: minls Files /Files/1032_Zones                  
+ 29 -- directories                                                      ok.
+       Cmd: minls Files /DeepPaths/a/b/c/d/e/i/j/k/Files   
+ 30 -- directories                                                      ok.
+       Cmd: minls Files /DeepPaths/a/b/c/d/e/i/j/k/Files/Message 
+ 31 -- multi-zone directory                                             ok.
+       Cmd: minls BigDirectories                           
+ 32 -- multi-zone directory (file)                                      ok.
+       Cmd: minls BigDirectories LastFile                  
+ 33 -- indirect directory                                               ok.
+       Cmd: minls BigIndirectDirs Level1/Level2            
+ 34 -- indirect directory (file)                                        ok.
+       Cmd: minls BigIndirectDirs Level1/Level2/LastFile   
+ 35 -- directories-deleted                                              ok.
+       Cmd: minls Files /Deleted                           
+ 36 -- directories-ok file                                              ok.
+       Cmd: minls Files /Deleted/File-10                   
+ 37 -- directories-deleted file                                         ok.
+       Cmd: minls Files /Deleted/File-05                   
+ 38 -- 1k blocks. dir.                                              FAILED.
+       Cmd: minls SmallBlocks--1k                          
+ 39 -- 1k blocks. file.                                                 ok.
+       Cmd: minls SmallBlocks--1k DirTwo/FileTwo           
+ 40 -- 16k zones. dir.                                                  ok.
+       Cmd: minls BigZones-16k                             
+ 41 -- 16k zones. file.                                                 ok.
+       Cmd: minls BigZones-16k /DirOne/FileTwo             
+ 42 -- 64k zones. dir                                                   ok.
+       Cmd: minls ReallyBigZones-64k                       
+ 43 -- 64k zones. file                                                  ok.
+       Cmd: minls ReallyBigZones-64k DirTwo/FileOne        
+ 44 -- 64k zones. longpath                                              ok.
+       Cmd: minls ReallyBigZones-64k /./.././../DirTwo/FileOne 
+ 45 -- Permissions 777                                                  ok.
+       Cmd: minls Files /Permissions/777                   
+ 46 -- Permissions 755                                                  ok.
+       Cmd: minls Files /Permissions/755                   
+ 47 -- Permissions 753                                                  ok.
+       Cmd: minls Files /Permissions/753                   
+ 48 -- Permissions 357                                                  ok.
+       Cmd: minls Files /Permissions/357                   
+ 49 -- Permissions 000                                                  ok.
+       Cmd: minls Files /Permissions/000                   
+ 50 -- unpartitioned, w/filename                                    FAILED.
+       Cmd: minget TestImage /Hello                         
+ 51 -- partitioned, w/filename, p0                                  FAILED.
+       Cmd: minget -p0 Partitioned /Message                 
+ 52 -- partitioned, w/filename, p1                                  FAILED.
+       Cmd: minget -p1 Partitioned /Message                 
+ 53 -- partitioned, w/filename, p2                                  FAILED.
+       Cmd: minget -p2 Partitioned /Message                 
+ 54 -- partitioned, w/filename, p3                                  FAILED.
+       Cmd: minget -p3 Partitioned /Message                 
+ 55 -- subpart., no filename s0                                     FAILED.
+       Cmd: minget -p0 -s0 HardDisk                         
+ 56 -- subpart., no filename s2                                     FAILED.
+       Cmd: minget -p0 -s2 HardDisk                         
+ 57 -- subpart., w/filename                                         FAILED.
+       Cmd: minget -p0 -s2 HardDisk /home/pnico/Message     
+ 58 -- subpart., w/bad filename                                         ok.
+       Cmd: minget -p0 -s0 HardDisk /home/pnico/Message     
+ 59 -- unpartitioned, w/filename                                    FAILED.
+       Cmd: minget TestImage /Hello /dev/stdout             
+ 60 -- partitioned, w/filename, p0                                  FAILED.
+       Cmd: minget -p0 Partitioned /Message /dev/stdout     
+ 61 -- partitioned, w/filename, p1                                  FAILED.
+       Cmd: minget -p1 Partitioned /Message /dev/stdout     
+ 62 -- partitioned, w/filename, p2                                  FAILED.
+       Cmd: minget -p2 Partitioned /Message /dev/stdout     
+ 63 -- partitioned, w/filename, p3                                  FAILED.
+       Cmd: minget -p3 Partitioned /Message /dev/stdout     
+ 64 -- subpart., no filename s0                                         ok.
+       Cmd: minget -p0 -s0 HardDisk /dev/stdout             
+ 65 -- subpart., no filename s2                                         ok.
+       Cmd: minget -p0 -s2 HardDisk /dev/stdout             
+ 66 -- subpart., w/filename                                         FAILED.
+       Cmd: minget -p0 -s2 HardDisk /home/pnico/Message /dev/stdout 
+ 67 -- subpart., w/bad filename                                         ok.
+       Cmd: minget -p0 -s0 HardDisk /home/pnico/Message /dev/stdout 
+ 68 -- directories                                                  FAILED.
+       Cmd: minget Files /Files                             
+ 69 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/Distraction             
+ 70 -- directories                                                  FAILED.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files   
+ 71 -- directories                                                  FAILED.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files/Message 
+ 72 -- directories                                                  FAILED.
+       Cmd: minget Files /Files /dev/stdout                 
+ 73 -- directories                                                      ok.
+       Cmd: minget Files /DeepPaths/Distraction /dev/stdout 
+ 74 -- directories                                                  FAILED.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files /dev/stdout 
+ 75 -- directories                                                  FAILED.
+       Cmd: minget Files /DeepPaths/a/b/c/d/e/i/j/k/Files/Message /dev/stdout 
+ 76 -- multi-zone directory (file)                                  FAILED.
+       Cmd: minget BigDirectories LastFile                  
+ 77 -- multi-zone directory (file)                                  FAILED.
+       Cmd: minget BigDirectories LastFile /dev/stdout      
+ 78 -- indirect directory (file)                                    FAILED.
+       Cmd: minget BigIndirectDirs Level1/Level2/LastFile   
+ 79 -- indirect directory (file)                                    FAILED.
+       Cmd: minget BigIndirectDirs Level1/Level2/LastFile /dev/stdout 
+ 80 -- directories-deleted                                          FAILED.
+       Cmd: minget Files /Deleted                           
+ 81 -- directories-ok file                                              ok.
+       Cmd: minget Files /Deleted/File-10                   
+ 82 -- directories-deleted file                                         ok.
+       Cmd: minget Files /Deleted/File-05                   
+ 83 -- directories-deleted                                          FAILED.
+       Cmd: minget Files /Deleted /dev/stdout               
+ 84 -- directories-ok file                                              ok.
+       Cmd: minget Files /Deleted/File-10 /dev/stdout       
+ 85 -- directories-deleted file                                         ok.
+       Cmd: minget Files /Deleted/File-05 /dev/stdout       
+ 86 -- 1k blocks. dir.                                                  ok.
+       Cmd: minls SmallBlocks--1k                          

@@ -9,6 +9,7 @@
 
 #define DIR_MASK 0040000 /* Confirms an inode mode is directory */
 #define FIL_MASK 0100000 /* Confirms an inode mode is file */
+#define SYM_MASK 0120000 /* Symlink mask */
 #define O_R_MASK 0000400 /* Owner read permission */
 #define O_W_MASK 0000200 /* Owner write permission */
 #define O_X_MASK 0000100 /* Owner exec permission */
@@ -22,6 +23,19 @@
 void printHelp()
 {
     perror("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n");
+    perror("Options:\n");
+    perror("-p part    --- select partition for ");
+    perror("filesystem (default: none)\n");
+    perror("-s sub     --- select subpartition for ");
+    perror("filesystem (default: none)\n");
+    perror("-h help    --- print usage information and exit\n");
+    perror("-v verbose --- increase verbosity level\n");
+}
+
+void printHelpGet()
+{
+    perror("usage: minget [ -v ] [ -p num [ -s num ] ] ");
+    perror("imagefile minixpath [ hostpath ]\n");
     perror("Options:\n");
     perror("-p part    --- select partition for ");
     perror("filesystem (default: none)\n");
@@ -566,6 +580,7 @@ void minget(Inode inode, FILE* image, SuperBlock sb,
     uint32_t bytesLeft = inode.size;
     uint32_t ptrsInZone = zoneSize / sizeof(uint32_t);
     uint8_t* zone;
+    uint8_t* hole;
     uint32_t bytesToWrite = 0;
 
     /* Open output file for writing */
@@ -577,13 +592,28 @@ void minget(Inode inode, FILE* image, SuperBlock sb,
     {
         fd = 1;
     }
-    if(inode.mode & FIL_MASK)
+
+    if ((inode.mode & SYM_MASK) == SYM_MASK)
+    {
+        printf("This is not a File!\n");
+        exit(-1);
+    }
+
+    if((inode.mode & FIL_MASK) == FIL_MASK)
     {
         if ((zone = malloc(zoneSize)) == NULL)
         {
           perror("malloc zone failed!");
           exit(-1);
         }
+
+        if ((hole = malloc(zoneSize)) == NULL)
+        {
+          perror("malloc zone failed!");
+          exit(-1);
+        }
+
+        memset(hole, '\0', zoneSize);
         
         for(i = 0; i < numZones; i++)
         {
@@ -600,7 +630,7 @@ void minget(Inode inode, FILE* image, SuperBlock sb,
             if(1 == getZone(image, ptrsInZone, inode, i, 
                 (Dirent *)zone, sb, po))
             {
-                write(fd, '\0', bytesToWrite);
+                write(fd, hole, bytesToWrite);
             }
             else
             {
@@ -610,11 +640,16 @@ void minget(Inode inode, FILE* image, SuperBlock sb,
         }
 
         free(zone);
-        close(fd);
+        free(hole);
     }
     else
     {
         printf("This is not a File!\n");
         exit(-1);
+    }
+
+    if (fd != 1)
+    {
+        close(fd);
     }
 }
