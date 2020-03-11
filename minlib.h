@@ -73,10 +73,13 @@ typedef struct __attribute__ ((__packed__)) Dirent
 
 void printHelp();
 void parseOpts(int argc, char* argv[], Options *options);
-void debugOptions(Options options);
-void getSuperBlock(FILE *stream, SuperBlock *superblock, uintptr_t offset);
-Partition getPartition(FILE *stream, uint32_t index, uintptr_t offset);
-void printPartTable(Partition ptable[]);
+void getPartitionTable(FILE *image, uintptr_t offset, uint32_t vflag, Partition *partitiontable);
+void printPartitionTable(Partition *partitiontable);
+void getSuperBlock(FILE *image, uintptr_t offset, SuperBlock *superblock);
 void printSuperblock(SuperBlock sb);
+void getInode(FILE *image, uintptr_t offset, uint32_t index, Inode *inode);
+void printInode(Inode inode);
+uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode, uint32_t index, Dirent* Zone, SuperBlock superblock);
+uint32_t checkZone(char* token, Dirent* Zone, uint32_t numEntries);
 
 #endif

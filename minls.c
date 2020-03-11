@@ -2,24 +2,36 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <string.h>
 #include "minlib.h"
 
 int main(int argc, char* argv[])
 {
+	int i;
 	Options options;
-    FILE* image;
+    FILE* image = NULL;
     uintptr_t offset = 0;
-    uint8_t magic[2];
     Partition partitiontable[4];
     Partition spartitiontable[4];
     Partition partition;
     SuperBlock superblock;
-    Inode* inodes;
+    Inode inode;
+    uint32_t currentIndex = 1;
+    uint32_t zoneSize = 0;
+    Dirent* Zone = NULL;
+    Dirent *direntList;
+    char copySrcpath[4096];
+    char* token = NULL;
+    uint32_t totalEntries = 0;
+    uint32_t numZones = 0;
+    uint32_t totalEntriesinZone = 0;
+    uint32_t numZonesIndirect = 0;
 
     /* Parse command line args */
     parseOpts(argc, argv, &options);
 
-    if((image = fopen(options.imgfile, "r")) == NULL) /*Read p-table*/
+    /* Open input image */
+    if((image = fopen(options.imgfile, "r")) == NULL)
     {
         perror("fopen failed!");
         exit(-1);
@@ -28,41 +40,14 @@ int main(int argc, char* argv[])
     /* If partition passed in */ 
     if (options.part != -1)
     {
+        getPartitionTable(image, offset, options.vflag, partitiontable);
 
-        /* Go to partition table signature */
-        if (-1 == fseek(image, offset + 510, SEEK_SET))
-        {
-            perror("partition seek failed!");
-            exit(-1);
-        }
-
-        /* Read partition table signature */
-        if(fread(magic, sizeof(uint8_t), 2, image) != 2)
-        {
-            perror("valid read failed!");
-            exit(-1);
-        }
-
-        /* Validate partition signature */
-        if(magic[0] != 0x55 || magic[1] != 0xAA)
-        {
-            printf("Invalid partition table!\n");
-            exit(-1);
-        }
-
-        /* Go to partition table */
-        if (-1 == fseek(image, offset + 0x1BE, SEEK_SET))
-        {
-            perror("fseek failed!");
-            exit(-1);
-        }
-
-        /* Read partition table */
-        if(fread(&partitiontable, sizeof(Partition), 4, image) != 4)
-        {
-            perror("partition read failed!");
-            exit(-1);
-        }
+        /* Partition Table verbose */
+		if(options.vflag)
+		{
+			printf("\nPartition table:\n");
+			printPartitionTable(partitiontable);
+		}
 
         /* Grab user requested partition */
         partition = partitiontable[options.part];
@@ -74,59 +59,19 @@ int main(int argc, char* argv[])
             exit(-1);
         }
 
-        /* Partition Table verbose */
-		if(options.vflag)
-		{
-			printf("\nPartition table:\n");
-			printPartTable(partitiontable);
-		}
-
         /* Find start of new partition */
         offset = partition.lFirst * 512;
 
         /* If subpartition passed in */
         if (options.spart != -1)
         {
-            /* Go to subpartition table signature */
-            if (-1 == fseek(image, offset + 510, SEEK_SET))
-            {
-                perror("subpartition seek failed!");
-                exit(-1);
-            }
-
-            /* Read subpartition table signature */
-            if(fread(magic, sizeof(uint8_t), 2, image) != 2)
-            {
-                perror("valid read failed!");
-                exit(-1);
-            }
-
-            /* Validate subpartition signature */
-            if(magic[0] != 0x55 || magic[1] != 0xAA)
-            {
-                printf("Invalid subpartition table!\n");
-                exit(-1);
-            }
-
-            /* Go to subpartition table */
-            if (-1 == fseek(image, offset + 0x1BE, SEEK_SET))
-            {
-                perror("subpartition fseek failed!");
-                exit(-1);
-            }
-
-            /* Read subpartition table */
-            if(fread(&spartitiontable, sizeof(Partition), 4, image) != 4)
-            {
-                perror("subpartition read failed!");
-                exit(-1);
-            }
+            getPartitionTable(image, offset, options.vflag, spartitiontable);
 
             /* Subpartition Table verbose */
 			if(options.vflag)
 			{
 				printf("\nSubpartition table:\n");
-				printPartTable(spartitiontable);
+				printPartitionTable(spartitiontable);
 			}
 
             /* Grab user requested subpartition */
@@ -144,56 +89,122 @@ int main(int argc, char* argv[])
         }
     }
 
-    /* Got to superblock */
-    if (-1 == fseek(image, offset + 1024, SEEK_SET))
-    {
-        perror("fseek failed!");
-        exit(-1);
-    }
-    
-    /* Read superblock */
-    if(fread(&superblock, sizeof(SuperBlock), 1, image) != 1)
-    {
-        perror("superblock read failed!");
-        exit(-1);
-    }
-
-    /* Validate superblock */
-    if (superblock.magic != 0x4D5A)
-    {
-        printf("Invalid super block\n");
-        exit(-1);
-    }
+    /* Grab superblock */
+    getSuperBlock(image, offset, &superblock);
 
     /* Superblock verbose */
     if(options.vflag)
     {
     	printSuperblock(superblock);
     }
+  
+  	/* Calculate zone size in bytes */
+    zoneSize = superblock.blocksize << superblock.log_zone_size;
+
+    printf("zoneSize: %d\n", zoneSize);
+
+    if ((Zone = malloc(zoneSize)) == NULL)
+    {
+        perror("malloc zone failed!");
+        exit(-1);
+    }
+
+    /* Calculating total number of dirents in a zone */
+    totalEntriesinZone = zoneSize / sizeof(Dirent);
+
+    /* Number of zone numbers in Indirect */
+    numZonesIndirect = zoneSize / sizeof(uint32_t);
+
+    printf("totalEntriesinZone: %d\n", totalEntriesinZone);
+
+    /* Allocating for zone (list of dirents) */
+    if ((direntList = malloc(zoneSize)) == NULL)
+    {
+    	perror("malloc dirent list failed!");
+        exit(-1);
+    }
 
     /* Calculate inode table offset */
     offset += superblock.blocksize * (2 + superblock.i_blocks + superblock.z_blocks);
 
-    /* Go to inode table */
-    if (-1 == fseek(image, offset, SEEK_SET))
+    /* Init srcpath copy */
+    memset(copySrcpath, '\0', 4096);
+
+    /* If a path was provided */
+    if (options.srcpath != NULL)
     {
-        perror("fseek failed!");
-        exit(-1);
+    	memcpy(copySrcpath, options.srcpath, strlen(options.srcpath));
+    }
+    /* A path wasn't given. Default to root */
+    else
+    {
+    	copySrcpath[0] = '/';
     }
 
-    /* Allocating for inode table */
-    if ((inodes = malloc(sizeof(uint64_t) * superblock.ninodes)) == NULL)
+    getInode(image, offset, currentIndex, &inode);
+    printInode(inode);
+
+    /* Start traversing path */
+    token = strtok(copySrcpath, "/");
+    while(token != NULL)
     {
-    	perror("malloc inode table failed!");
-        exit(-1);
+    	printf("token: %s\n", token);
+
+    	/* Get inode */
+    	getInode(image, offset, currentIndex, &inode);
+
+        printf("inode.size: %d\n", inode.size);
+
+    	/* Calculating total number of dirents */
+    	totalEntries = inode.size / sizeof(Dirent);
+
+        printf("totalEntries: %d\n", totalEntries);
+
+        /* Calculating total number of zones used */
+        numZones = (inode.size / zoneSize) + (inode.size % zoneSize != 0);
+
+        printf("numZones: %d\n", numZones);
+
+        for (i = 0; i < numZones; i++)
+        {
+            if (1 == getZone(image, numZonesIndirect, inode, i, Zone, superblock))
+            {
+                totalEntries -= totalEntriesinZone;
+                continue;
+            }
+
+            if (totalEntries < totalEntriesinZone)
+            {
+                if ((currentIndex = checkZone(token, Zone, totalEntries)) != 0)
+                {
+                    break;
+                }
+            }
+            else
+            {
+                if ((currentIndex = checkZone(token, Zone, totalEntriesinZone)) != 0)
+                {
+                    break;
+                }
+                totalEntries -= totalEntriesinZone;
+            }
+        }
+
+        if (currentIndex == 0)
+        {
+            printf("Couldn't find file!\n");
+            exit(-1);
+        }
+
+
+
+    	token = strtok(NULL, "/");
     }
 
-    /* Read inode table */
-    if(fread(inodes, sizeof(uint64_t), superblock.ninodes, image) != superblock.ninodes)
+    if (options.vflag)
     {
-        perror("inode table read failed!");
-        exit(-1);
-    } 
+    	printInode(inode);
+    }
 
     /* Close image */
     if((fclose(image)) == -1)
