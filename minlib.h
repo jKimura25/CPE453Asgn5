@@ -6,7 +6,30 @@
 #include <unistd.h>
 #include <stdint.h>
 
+#define DIR_MASK 0040000 /* Confirms an inode mode is directory */
+#define FIL_MASK 0100000 /* Confirms an inode mode is file */
+#define SYM_MASK 0120000 /* Confirms an inode mode is symlink */
+#define O_R_MASK 0000400 /* Owner read permission */
+#define O_W_MASK 0000200 /* Owner write permission */
+#define O_X_MASK 0000100 /* Owner exec permission */
+#define G_R_MASK 0000040 /* Group read permission */
+#define G_W_MASK 0000020 /* Group write permission */
+#define G_X_MASK 0000010 /* Group exec permission */
+#define X_R_MASK 0000004 /* Other read permission */
+#define X_W_MASK 0000002 /* Other write permission */
+#define X_X_MASK 0000001 /* Other exec permission */
 #define DIRECT_ZONES 7
+#define MAGICOFFSET 510
+#define MAGIC1 0x55
+#define MAGIC2 0xAA
+#define PTABLELOC 0x1BE
+#define MINIXMAGIC 0x4D5A
+#define SBOFFSET 1024
+#define NAMELENGTH 60
+#define NUMPART 4
+#define MAXPATH 4097
+#define SECTORSIZE 512
+#define MINIXTYPE 0x81
 
 typedef struct __attribute__ ((__packed__)) Options
 {
@@ -95,5 +118,8 @@ Dirent getDirent(FILE* image, Inode inode, SuperBlock sb,
     uintptr_t offs, uint32_t index);
 void minget(Inode inode, FILE* image, SuperBlock sb, 
     uintptr_t po, Options ops);
+void safeRead(void *ptr, size_t size, size_t nmemb, FILE *stream);
+void safeSeek(FILE *stream, long int offset, int whence);
+void safeMalloc(void *ptr, size_t size);
 
 #endif

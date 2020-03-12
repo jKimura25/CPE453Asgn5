@@ -12,15 +12,15 @@ int main(int argc, char* argv[])
     FILE* image = NULL;
     uintptr_t partitionOffset = 0;
     uintptr_t inodeTableOffset = 0;
-    Partition partitiontable[4];
-    Partition spartitiontable[4];
+    Partition partitiontable[NUMPART];
+    Partition spartitiontable[NUMPART];
     Partition partition;
     SuperBlock superblock;
     Inode inode;
     uint32_t currentIndex = 1;
     uint32_t zoneSize = 0;
     Dirent* Zone = NULL;
-    char copySrcpath[4096];
+    char copySrcpath[MAXPATH];
     char* token = NULL;
     uint32_t totalEntries = 0;
     Dirent dirent;
@@ -52,14 +52,14 @@ int main(int argc, char* argv[])
         partition = partitiontable[options.part];
 
         /* Validate partition type is Minix */
-        if (partition.type != 0x81)
+        if (partition.type != MINIXTYPE)
         {
             printf("Invalid partition!\n");
             exit(-1);
         }
 
         /* Find start of new partition */
-        partitionOffset = partition.lFirst * 512;
+        partitionOffset = partition.lFirst * SECTORSIZE;
 
         /* If subpartition passed in */
         if (options.spart != -1)
@@ -78,14 +78,14 @@ int main(int argc, char* argv[])
             partition = spartitiontable[options.spart];
 
             /* Validate subpartition type is Minix */
-            if (partition.type != 0x81)
+            if (partition.type != MINIXTYPE)
             {
                 printf("Invalid partition!\n");
                 exit(-1);
             }
 
             /* Find start of new subpartition */
-            partitionOffset = partition.lFirst * 512;
+            partitionOffset = partition.lFirst * SECTORSIZE;
         }
     }
 
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
     	(2 + superblock.i_blocks + superblock.z_blocks);
 
     /* Init srcpath copy */
-    memset(copySrcpath, '\0', 4096);
+    memset(copySrcpath, '\0', MAXPATH);
 
     /* If a path was provided */
     if (options.srcpath != NULL)

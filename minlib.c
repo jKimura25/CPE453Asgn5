@@ -7,19 +7,6 @@
 #include <fcntl.h>
 #include "minlib.h"
 
-#define DIR_MASK 0040000 /* Confirms an inode mode is directory */
-#define FIL_MASK 0100000 /* Confirms an inode mode is file */
-#define SYM_MASK 0120000 /* Symlink mask */
-#define O_R_MASK 0000400 /* Owner read permission */
-#define O_W_MASK 0000200 /* Owner write permission */
-#define O_X_MASK 0000100 /* Owner exec permission */
-#define G_R_MASK 0000040 /* Group read permission */
-#define G_W_MASK 0000020 /* Group write permission */
-#define G_X_MASK 0000010 /* Group exec permission */
-#define X_R_MASK 0000004 /* Other read permission */
-#define X_W_MASK 0000002 /* Other write permission */
-#define X_X_MASK 0000001 /* Other exec permission */
-
 void printHelp()
 {
     perror("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n");
@@ -100,39 +87,23 @@ void getPartitionTable(FILE *image, uintptr_t offset, uint32_t vflag,
     uint8_t magic[2];
 
     /* Go to partition table signature */
-    if (-1 == fseek(image, offset + 510, SEEK_SET))
-    {
-        perror("partition seek failed!");
-        exit(-1);
-    }
+    safeSeek(image, offset + MAGICOFFSET, SEEK_SET);
 
     /* Read partition table signature */
-    if(fread(magic, sizeof(uint8_t), 2, image) != 2)
-    {
-        perror("valid read failed!");
-        exit(-1);
-    }
+    safeRead(magic, sizeof(uint8_t), 2, image);
 
     /* Validate partition signature */
-    if(magic[0] != 0x55 || magic[1] != 0xAA)
+    if(magic[0] != MAGIC1 || magic[1] != MAGIC2)
     {
         printf("Invalid partition table!\n");
         exit(-1);
     }
 
     /* Go to partition table */
-    if (-1 == fseek(image, offset + 0x1BE, SEEK_SET))
-    {
-        perror("fseek failed!");
-        exit(-1);
-    }
+    safeSeek(image, offset + PTABLELOC, SEEK_SET);
 
     /* Read partition table */
-    if(fread(partitiontable, sizeof(Partition), 4, image) != 4)
-    {
-        perror("partition read failed!");
-        exit(-1);
-    }
+    safeRead(partitiontable, sizeof(Partition), NUMPART, image);
 }
 
 void printPartitionTable(Partition *partitiontable)
@@ -140,7 +111,7 @@ void printPartitionTable(Partition *partitiontable)
     int i;
     printf("       ----Start----      ------End-----\n");
     printf("  Boot head  sec  cyl Type head  sec  cyl      First       Size\n");
-    for(i = 0; i < 4; i++)
+    for(i = 0; i < NUMPART; i++)
     {
         printf("  %#4x", partitiontable[i].bootind);
         printf(" %4d", partitiontable[i].start_head);
@@ -158,21 +129,13 @@ void printPartitionTable(Partition *partitiontable)
 void getSuperBlock(FILE *image, uintptr_t offset, SuperBlock *superblock)
 {
     /* Go to superblock */
-    if (-1 == fseek(image, offset + 1024, SEEK_SET))
-    {
-        perror("fseek failed!");
-        exit(-1);
-    }
+    safeSeek(image, offset + SBOFFSET, SEEK_SET);
     
     /* Read superblock */
-    if(fread(superblock, sizeof(SuperBlock), 1, image) != 1)
-    {
-        perror("superblock read failed!");
-        exit(-1);
-    }
+    safeRead(superblock, sizeof(SuperBlock), 1, image);
 
     /* Validate superblock */
-    if (superblock->magic != 0x4D5A)
+    if (superblock->magic != MINIXMAGIC)
     {
         printf("Invalid super block\n");
         exit(-1);
@@ -200,48 +163,48 @@ int count = 0;
 Dirent getDirent
    (FILE* image, Inode inode, SuperBlock sb, uintptr_t offs, uint32_t index)
 {
-   uint32_t zoneSize = sb.blocksize << sb.log_zone_size;
-   uint32_t direntsInZone = zoneSize / sizeof(Dirent);
-   uint32_t ptrsInZone = zoneSize / sizeof(uint32_t);
-   uint32_t zoneNumber = index / direntsInZone;
-   Dirent dummy;
-   Dirent* zone;
+    uint32_t zoneSize = sb.blocksize << sb.log_zone_size;
+    uint32_t direntsInZone = zoneSize / sizeof(Dirent);
+    uint32_t ptrsInZone = zoneSize / sizeof(uint32_t);
+    uint32_t zoneNumber = index / direntsInZone;
+    Dirent dummy;
+    Dirent* zone;
    
-   if ((zone = malloc(zoneSize)) == NULL)
-   {
-      perror("malloc zone failed!");
-      exit(-1);
-   }
+    if ((zone = malloc(zoneSize)) == NULL)
+    {
+        perror("malloc zone failed!");
+        exit(-1);
+    }
 
-   if(1 == getZone(image, ptrsInZone, inode, zoneNumber, zone, sb, offs))
-   {
-      dummy.inode = 0;
-      return dummy;
-   }
+    if(1 == getZone(image, ptrsInZone, inode, zoneNumber, zone, sb, offs))
+    {
+        dummy.inode = 0;
+        return dummy;
+    }
 
-   dummy = zone[index%direntsInZone];
+    dummy = zone[index%direntsInZone];
 
-   free(zone);
-   return dummy;
+    free(zone);
+    return dummy;
 }
 
 uint32_t checkDirent(Dirent dirent, char* token)
 {
-   char direntName[61];
-   memset(direntName, '\0', 61);
-   memcpy(direntName, dirent.name, 60);
-   if(dirent.inode == 0)
-   {
-      return 0;
-   }
-   if(strcmp(direntName, token) == 0)
-   {
-      return dirent.inode;
-   }
-   else
-   {
-      return 0;
-   }
+    char direntName[NAMELENGTH + 1];
+    memset(direntName, '\0', NAMELENGTH + 1);
+    memcpy(direntName, dirent.name, NAMELENGTH);
+    if(dirent.inode == 0)
+    {
+        return 0;
+    }
+    if(strcmp(direntName, token) == 0)
+    {
+        return dirent.inode;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void getInode(FILE *image, uintptr_t offset, uint32_t index, Inode *inode)
@@ -251,18 +214,10 @@ void getInode(FILE *image, uintptr_t offset, uint32_t index, Inode *inode)
     inodeoffset = offset + (index - 1) * (sizeof(Inode));
 
     /* Go to inode table */
-    if (-1 == fseek(image, inodeoffset, SEEK_SET))
-    {
-        perror("fseek failed!");
-        exit(-1);
-    }
+    safeSeek(image, inodeoffset, SEEK_SET);
 
     /* Read inode */
-    if(fread(inode, sizeof(Inode), 1, image) != 1)
-    {
-        perror("inode read failed!");
-        exit(-1);
-    }
+    safeRead(inode, sizeof(Inode), 1, image);
 }
 
 void printInode(Inode inode)
@@ -341,18 +296,10 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode,
         }
 
         /* Go to Indirect table */
-        if (-1 == fseek(image, offset + addr, SEEK_SET))
-        {
-            perror("fseek failed!");
-            exit(-1);
-        }
+        safeSeek(image, offset + addr, SEEK_SET);
 
         /* Read Indirect table */
-        if(fread(tempZone1, zoneSize, 1, image) != 1)
-        {
-            perror("indirect table failed!");
-            exit(-1);
-        }
+        safeRead(tempZone1, zoneSize, 1, image);
 
         blockIndex = tempZone1[index];
 
@@ -387,18 +334,10 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode,
         }
 
         /* Go to Two_Indirect table */
-        if (-1 == fseek(image, offset + two_indirect_addr, SEEK_SET))
-        {
-            perror("fseek failed!");
-            exit(-1);
-        }
+        safeSeek(image, offset + two_indirect_addr, SEEK_SET);
 
         /* Read Two_Indirect table */
-        if(fread(tempZone1, zoneSize, 1, image) != 1)
-        {
-            perror("two_indirect table failed!");
-            exit(-1);
-        }
+        safeRead(tempZone1, zoneSize, 1, image);
 
         indirIndex = index / (zoneSize / sizeof(uint32_t));
 
@@ -411,18 +350,10 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode,
         indirect_addr = tempZone1[indirIndex] * superblock.blocksize;
 
         /* Go to Indirect table */
-        if (-1 == fseek(image, offset + indirect_addr, SEEK_SET))
-        {
-            perror("fseek failed!");
-            exit(-1);
-        }
+        safeSeek(image, offset + indirect_addr, SEEK_SET);
 
         /* Read Indirect table */
-        if(fread(tempZone2, zoneSize, 1, image) != 1)
-        {
-            perror("indirect table failed!");
-            exit(-1);
-        }
+        safeRead(tempZone2, zoneSize, 1, image);
 
         blockIndex = tempZone2[index % (zoneSize / sizeof(uint32_t))];
 
@@ -444,18 +375,10 @@ uint32_t getZone(FILE* image, uint32_t indirectSize, Inode inode,
     addr = blockIndex * zoneSize;
 
     /* Go to Zone */
-    if (-1 == fseek(image, offset + addr, SEEK_SET))
-    {
-        perror("fseek failed!");
-        exit(-1);
-    }
+    safeSeek(image, offset + addr, SEEK_SET);
 
     /* Read Zone */
-    if(fread(Zone, zoneSize, 1, image) != 1)
-    {
-        perror("indirect table failed!");
-        exit(-1);
-    }
+    safeRead(Zone, zoneSize, 1, image);
 
     return 0;
 }
@@ -464,7 +387,7 @@ uint32_t checkZone(char* token, Dirent* Zone, uint32_t numEntries)
 {
     int i;
     Dirent dirent;
-    char direntName[61];
+    char direntName[NAMELENGTH + 1];
 
     for (i = 0; i < numEntries; i++)
     {
@@ -475,8 +398,8 @@ uint32_t checkZone(char* token, Dirent* Zone, uint32_t numEntries)
             continue;
         }
 
-        memset(direntName, '\0', 61);
-        memcpy(direntName, dirent.name, 60);
+        memset(direntName, '\0', NAMELENGTH + 1);
+        memcpy(direntName, dirent.name, NAMELENGTH);
 
         if (strcmp(direntName, token) == 0)
         {
@@ -535,7 +458,7 @@ void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb,
     uintptr_t po, uintptr_t io)
 {
     int i;
-    char direntName[61];
+    char direntName[NAMELENGTH + 1];
     uint32_t totalEntries = inode.size / sizeof(Dirent);
     Dirent dirent;
     Inode tempin;
@@ -548,8 +471,8 @@ void lsdir(Inode inode, char* path, FILE* image, SuperBlock sb,
         if(dirent.inode != 0)
         {
             getInode(image, io, dirent.inode, &tempin);
-            memset(direntName, '\0', 61);
-            memcpy(direntName, dirent.name, 60);
+            memset(direntName, '\0', NAMELENGTH + 1);
+            memcpy(direntName, dirent.name, NAMELENGTH);
             printMask(tempin);
             printf("   %d %s\n", tempin.size, direntName);
         }
@@ -651,5 +574,32 @@ void minget(Inode inode, FILE* image, SuperBlock sb,
     if (fd != 1)
     {
         close(fd);
+    }
+}
+
+void safeRead(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+    if(fread(ptr, size, nmemb, stream) != nmemb)
+    {
+        perror("fread() failed!");
+        exit(-1);
+    }
+}
+
+void safeSeek(FILE *stream, long int offset, int whence)
+{
+    if (-1 == fseek(stream, offset, whence))
+    {
+        perror("fread() failed!");
+        exit(-1);
+    }
+}
+
+void safeMalloc(void *ptr, size_t size)
+{
+    if ((ptr = malloc(size)) == NULL)
+    {
+        perror("malloc() failed!");
+        exit(-1);
     }
 }
